@@ -1,6 +1,7 @@
 # Publishes a new version when a tag like v0.2.0 is pushed:
 #   npm version minor && git push --follow-tags
-# Needs the repository secrets VSCE_PAT (VS Code Marketplace) and OVSX_PAT (Open VSX).
+# Always creates a GitHub release with the .vsix. Also publishes to the VS Code Marketplace
+# and Open VSX when the repository secrets VSCE_PAT / OVSX_PAT exist (skipped otherwise).
 name: Release
 
 on:
@@ -13,6 +14,9 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -24,14 +28,12 @@ jobs:
       - run: npm test
       - run: npx vsce package --no-dependencies
       - name: VS Code Marketplace
+        if: env.VSCE_PAT != ''
         run: npx vsce publish --no-dependencies --packagePath *.vsix
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
       - name: Open VSX (VSCodium, Cursor, ...)
+        if: env.OVSX_PAT != ''
         run: npx --yes ovsx publish *.vsix
-        env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
       - name: GitHub release
-        run: gh release create "$GITHUB_REF_NAME" *.vsix --title "$GITHUB_REF_NAME" --notes-file CHANGELOG.md
+        run: gh release create "$GITHUB_REF_NAME" *.vsix --title "Visual Studio G $GITHUB_REF_NAME" --notes-file CHANGELOG.md
         env:
           GH_TOKEN: ${{ github.token }}

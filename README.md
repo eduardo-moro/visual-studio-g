@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="https://codespaces.new/eduardo-moro/visual-studio-g?quickstart=1"><img src="https://github.com/codespaces/badge.svg" alt="Abrir no GitHub Codespaces"></a><br>
+  <a href="https://codespaces.new/eduardo-moro/visual-studio-g?quickstart=1"><img src="https://img.shields.io/badge/Abrir_no-GitHub_Codespaces-2f81f7?style=for-the-badge&logo=github" alt="Abrir no GitHub Codespaces"></a><br>
   <sub>Experimente sem instalar nada: abre um VS Code no navegador com a extensão e os exemplos prontos (precisa de uma conta GitHub gratuita).</sub>
 </p>
 

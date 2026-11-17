@@ -1,9 +1,13 @@
 # Automatic releases: when a push to main brings a new "version" in package.json (one without a
 # v<version> tag yet), this tests, packages, creates the v<version> tag + GitHub release with the
-# .vsix (notes from that version's CHANGELOG section), and publishes to the VS Code Marketplace and
-# Open VSX when the repository secrets VSCE_PAT / OVSX_PAT exist (skipped otherwise).
+# .vsix (notes from that version's CHANGELOG section) and publishes it.
+#
+# VS Code Marketplace: Trusted Publishing (no token). Needs a Trusted Publishing policy for this
+# repository and workflow (release.yml) on the publisher page, and the repository variable
+# MARKETPLACE_TRUSTED_PUBLISHING=true. Open VSX: needs the secret OVSX_PAT. Each is skipped if not set up.
 #
 # To release: npm version patch (or minor), add a "## <version>" section to CHANGELOG.md, git push.
+# "Run workflow" in the Actions tab publishes the current version to the Marketplace (retry/backfill).
 name: Release
 
 on:
@@ -13,13 +17,14 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      VSCE_PAT: ${{ secrets.VSCE_PAT }}
       OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      MARKETPLACE: ${{ vars.MARKETPLACE_TRUSTED_PUBLISHING }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -30,27 +35,33 @@ jobs:
           v=$(node -p "require('./package.json').version")
           echo "version=$v" >> "$GITHUB_OUTPUT"
           if git rev-parse -q --verify "refs/tags/v$v" >/dev/null; then
-            echo "v$v already released, nothing to do"
+            echo "v$v already released"
             echo "new=false" >> "$GITHUB_OUTPUT"
           else
             echo "new=true" >> "$GITHUB_OUTPUT"
           fi
+          # Run workflow (manual): publish the current version to the Marketplace even if it is tagged.
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] || ! git rev-parse -q --verify "refs/tags/v$v" >/dev/null; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "build=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@v7
-        if: steps.version.outputs.new == 'true'
+        if: steps.version.outputs.build == 'true'
         with:
           node-version: 22
           cache: npm
-      - if: steps.version.outputs.new == 'true'
+      - if: steps.version.outputs.build == 'true'
         run: npm ci
-      - if: steps.version.outputs.new == 'true'
+      - if: steps.version.outputs.build == 'true'
         run: npm run typecheck
-      - if: steps.version.outputs.new == 'true'
+      - if: steps.version.outputs.build == 'true'
         run: npm test
-      - if: steps.version.outputs.new == 'true'
+      - if: steps.version.outputs.build == 'true'
         run: npx vsce package --no-dependencies
-      - name: VS Code Marketplace
-        if: steps.version.outputs.new == 'true' && env.VSCE_PAT != ''
-        run: npx vsce publish --no-dependencies --packagePath *.vsix
+      - name: VS Code Marketplace (Trusted Publishing)
+        if: steps.version.outputs.build == 'true' && env.MARKETPLACE == 'true'
+        run: npx vsce publish --oidc --no-dependencies --packagePath *.vsix
       - name: Open VSX (VSCodium, Cursor, ...)
         if: steps.version.outputs.new == 'true' && env.OVSX_PAT != ''
         run: npx --yes ovsx publish *.vsix

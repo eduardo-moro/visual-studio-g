@@ -67,4 +67,6 @@ node test-integration/make-gif.mjs                      # media/demo.gif com leg
 2. Escreva a seção `## <versão>` no topo do `CHANGELOG.md`.
 3. `git push`.
 
-O workflow **Release** percebe a versão nova e, se os testes passarem, cria a tag e o Release no GitHub com o `.vsix` e as notas do CHANGELOG. Se o repositório tiver os segredos `VSCE_PAT` (VS Code Marketplace) e `OVSX_PAT` (Open VSX), ele também publica nesses lugares; sem eles, baixe o `.vsix` do Release e envie em https://marketplace.visualstudio.com/manage.
+O workflow **Release** percebe a versão nova e, se os testes passarem, cria a tag e o Release no GitHub com o `.vsix` e as notas do CHANGELOG, e publica no VS Code Marketplace por **Publicação Confiável** (Trusted Publishing, sem token): na página do publisher em https://marketplace.visualstudio.com/manage existe uma regra que autoriza o workflow `release.yml` deste repositório, e a variável do repositório `MARKETPLACE_TRUSTED_PUBLISHING` vale `true`. O Open VSX é publicado se existir o segredo `OVSX_PAT`.
+
+Se a publicação no Marketplace falhar, dá para tentar de novo em **Actions → Release → Run workflow**, que publica a versão atual.

@@ -1,39 +1,66 @@
-# Publishes a new version when a tag like v0.2.0 is pushed:
-#   npm version minor && git push --follow-tags
-# Always creates a GitHub release with the .vsix. Also publishes to the VS Code Marketplace
-# and Open VSX when the repository secrets VSCE_PAT / OVSX_PAT exist (skipped otherwise).
+# Automatic releases: when a push to main brings a new "version" in package.json (one without a
+# v<version> tag yet), this tests, packages, creates the v<version> tag + GitHub release with the
+# .vsix (notes from that version's CHANGELOG section), and publishes to the VS Code Marketplace and
+# Open VSX when the repository secrets VSCE_PAT / OVSX_PAT exist (skipped otherwise).
+#
+# To release: npm version patch (or minor), add a "## <version>" section to CHANGELOG.md, git push.
 name: Release
 
 on:
   push:
-    tags: ['v*']
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     env:
       VSCE_PAT: ${{ secrets.VSCE_PAT }}
       OVSX_PAT: ${{ secrets.OVSX_PAT }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: New version?
+        id: version
+        run: |
+          v=$(node -p "require('./package.json').version")
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/v$v" >/dev/null; then
+            echo "v$v already released, nothing to do"
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@v7
+        if: steps.version.outputs.new == 'true'
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm test
-      - run: npx vsce package --no-dependencies
+      - if: steps.version.outputs.new == 'true'
+        run: npm ci
+      - if: steps.version.outputs.new == 'true'
+        run: npm run typecheck
+      - if: steps.version.outputs.new == 'true'
+        run: npm test
+      - if: steps.version.outputs.new == 'true'
+        run: npx vsce package --no-dependencies
       - name: VS Code Marketplace
-        if: env.VSCE_PAT != ''
+        if: steps.version.outputs.new == 'true' && env.VSCE_PAT != ''
         run: npx vsce publish --no-dependencies --packagePath *.vsix
       - name: Open VSX (VSCodium, Cursor, ...)
-        if: env.OVSX_PAT != ''
+        if: steps.version.outputs.new == 'true' && env.OVSX_PAT != ''
         run: npx --yes ovsx publish *.vsix
       - name: GitHub release
-        run: gh release create "$GITHUB_REF_NAME" *.vsix --title "Visual Studio G $GITHUB_REF_NAME" --notes-file CHANGELOG.md
+        if: steps.version.outputs.new == 'true'
+        run: |
+          v=${{ steps.version.outputs.version }}
+          # This version's section of the changelog (from "## v" to the next "## ").
+          awk -v v="$v" '$0 == "## " v {on=1; next} /^## / {on=0} on' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "Versão $v" > notes.md
+          gh release create "v$v" *.vsix --target "$GITHUB_SHA" --title "Visual Studio G $v" --notes-file notes.md
         env:
           GH_TOKEN: ${{ github.token }}

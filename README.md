@@ -98,6 +98,12 @@ Contribuições são muito bem-vindas, principalmente de quem está aprendendo! 
 
 **Visual Studio G** runs and debugs VisuAlg programs (the Portuguese pseudocode used to teach programming in Brazilian schools and universities) inside VS Code, on any OS. It ships its own interpreter, a full debugger (breakpoints, stepping, variables, call stack), a live flowchart view (Mermaid) that highlights the running block while debugging, live diagnostics, a formatter and a live memory view. MIT licensed.
 
+## Créditos
+
+Criado por [Eduardo Moro](https://github.com/eduardo-moro), com o código escrito em parceria com o **Claude** (Anthropic), pelo Claude Code: interpretador, depurador, fluxograma, testes, ícone e esta documentação.
+
+Os fluxogramas são desenhados com o [Mermaid](https://mermaid.js.org) (veja [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)). A linguagem segue o manual e os exemplos do VisuAlg 3.0.
+
 ---
 
 O nome é uma brincadeira com Visual Studio + VisuAlG. Este projeto não é afiliado à Microsoft nem aos autores do VisuAlg.

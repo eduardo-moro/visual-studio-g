@@ -15,6 +15,11 @@
   <img src="https://img.shields.io/badge/licen%C3%A7a-MIT-blue" alt="Licença MIT">
 </p>
 
+<p align="center">
+  <a href="https://codespaces.new/eduardo-moro/visual-studio-g?quickstart=1"><img src="https://github.com/codespaces/badge.svg" alt="Abrir no GitHub Codespaces"></a><br>
+  <sub>Experimente sem instalar nada: abre um VS Code no navegador com a extensão e os exemplos prontos (precisa de uma conta GitHub gratuita).</sub>
+</p>
+
 ---
 
 O VisuAlg é ótimo para aprender lógica de programação, mas só roda no Windows e o editor dele é bem limitado. A **Visual Studio G** traz a linguagem do VisuAlg para o VS Code, com um interpretador próprio: você escreve o mesmo código das aulas e ganha um depurador de verdade, erros enquanto digita e tudo o que o VS Code oferece.

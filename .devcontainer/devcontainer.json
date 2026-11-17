@@ -1,0 +1,25 @@
+{
+  // "Abrir no GitHub Codespaces": VS Code online com a Visual Studio G instalada e os exemplos abertos.
+  "name": "Visual Studio G",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "hostRequirements": {
+    "cpus": 2
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["eduardo-moro.visual-studio-g"],
+      "settings": {
+        "workbench.startupEditor": "none",
+        "editor.minimap.enabled": false,
+        "git.openRepositoryInParentFolders": "never"
+      }
+    },
+    "codespaces": {
+      "openFiles": [
+        "exemplos/07-dado-aleatorio.alg",
+        "exemplos/01-ola.alg",
+        "exemplos/COMO-USAR.md"
+      ]
+    }
+  }
+}

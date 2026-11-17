@@ -1,0 +1,81 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "VisuAlg",
+  "scopeName": "source.visualg",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#string" },
+    { "include": "#declaration" },
+    { "include": "#number" },
+    { "include": "#structure" },
+    { "include": "#control" },
+    { "include": "#type" },
+    { "include": "#constant" },
+    { "include": "#operator-word" },
+    { "include": "#builtin" },
+    { "include": "#directive" },
+    { "include": "#operator" },
+    { "include": "#call" }
+  ],
+  "repository": {
+    "comment": {
+      "name": "comment.line.double-slash.visualg",
+      "match": "//.*$"
+    },
+    "string": {
+      "name": "string.quoted.double.visualg",
+      "match": "\"[^\"\\n]*\"?"
+    },
+    "number": {
+      "name": "constant.numeric.visualg",
+      "match": "(?<![\\p{L}\\p{N}_])\\d+(\\.\\d+(?!\\.))?([eE][+-]?\\d+)?(?![\\p{L}\\p{N}_])"
+    },
+    "declaration": {
+      "match": "(?i)(?<![\\p{L}\\p{N}_])(procedimento|fun[cç][aã]o)\\s+([\\p{L}_][\\p{L}\\p{N}_]*)",
+      "captures": {
+        "1": { "name": "keyword.other.visualg" },
+        "2": { "name": "entity.name.function.visualg" }
+      }
+    },
+    "structure": {
+      "name": "keyword.other.visualg",
+      "match": "(?i)(?<![\\p{L}\\p{N}_])(algoritmo|fimalgoritmo|in[ií]cio|var|vari[aá]vel|const|tipo|registro|fimregistro|procedimento|fimprocedimento|fun[cç][aã]o|fimfun[cç][aã]o)(?![\\p{L}\\p{N}_])"
+    },
+    "control": {
+      "name": "keyword.control.visualg",
+      "match": "(?i)(?<![\\p{L}\\p{N}_])(se|ent[aã]o|sen[aã]o|fimse|escolha|caso|outrocaso|fimescolha|para|de|at[eé]|passo|fa[cç]a|fimpara|enquanto|fimenquanto|repita|fimrepita|interrompa|retorne)(?![\\p{L}\\p{N}_])"
+    },
+    "type": {
+      "name": "storage.type.visualg",
+      "match": "(?i)(?<![\\p{L}\\p{N}_])(inteiro|real|num[eé]rico|caractere|caracter|literal|l[oó]gico|vetor|matriz(?=\\s*\\[))(?![\\p{L}\\p{N}_])"
+    },
+    "constant": {
+      "name": "constant.language.visualg",
+      "match": "(?i)(?<![\\p{L}\\p{N}_])(verdadeiro|falso|pi)(?![\\p{L}\\p{N}_])"
+    },
+    "operator-word": {
+      "name": "keyword.operator.word.visualg",
+      "match": "(?i)(?<![\\p{L}\\p{N}_])(e|ou|n[aã]o|xou|mod|div)(?![\\p{L}\\p{N}_])"
+    },
+    "builtin": {
+      "name": "support.function.builtin.visualg",
+      "match": "(?i)(?<![\\p{L}\\p{N}_])(escreval|escreva|leia|limpatela|mudacor|posicionar|abs|arccos|arcsen|arctan|cos|cotan|exp|grauprad|radpgrau|int|logn|log|pot|quad|raizq|randi|rand|sen|tan|asc|carac|caracpnum|compr|copia|maiusc|minusc|numpcaraczero|numpcarac|pos|esquerda|direita|etrim|dtrim|replicar)(?![\\p{L}\\p{N}_])"
+    },
+    "directive": {
+      "name": "keyword.other.directive.visualg",
+      "match": "(?i)(?<![\\p{L}\\p{N}_])(aleat[oó]rio|timer|eco|cron[oô]metro|pausa|debug|arquivo|on|off|dos)(?![\\p{L}\\p{N}_])"
+    },
+    "operator": {
+      "patterns": [
+        { "name": "keyword.operator.assignment.visualg", "match": "<-|:=|←" },
+        { "name": "keyword.operator.comparison.visualg", "match": "<=|>=|<>|=|<|>" },
+        { "name": "keyword.operator.arithmetic.visualg", "match": "[+\\-*/\\\\^%]" },
+        { "name": "punctuation.separator.range.visualg", "match": "\\.\\." }
+      ]
+    },
+    "call": {
+      "match": "([\\p{L}_][\\p{L}\\p{N}_]*)\\s*(?=\\()",
+      "captures": { "1": { "name": "entity.name.function.call.visualg" } }
+    }
+  }
+}

@@ -1,0 +1,232 @@
+{
+  "name": "visual-studio-g",
+  "displayName": "Visual Studio G",
+  "description": "VisuAlg (Portugol) no VS Code: execute, depure com breakpoints e passo a passo e acompanhe as variáveis, sem precisar do VisuAlg nem do Wine.",
+  "version": "0.1.0",
+  "publisher": "eduardo-moro",
+  "author": {
+    "name": "Eduardo Moro"
+  },
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#0B5CAD",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eduardo-moro/visual-studio-g"
+  },
+  "homepage": "https://github.com/eduardo-moro/visual-studio-g#readme",
+  "bugs": {
+    "url": "https://github.com/eduardo-moro/visual-studio-g/issues"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Debuggers",
+    "Education",
+    "Snippets",
+    "Formatters"
+  ],
+  "keywords": [
+    "visualg",
+    "portugol",
+    "algoritmo",
+    "algoritmos",
+    "pseudocodigo",
+    "logica de programacao",
+    "debugger"
+  ],
+  "main": "./dist/extension.js",
+  "bin": {
+    "visualg": "./dist/cli.js"
+  },
+  "activationEvents": [
+    "onLanguage:visualg",
+    "onDebugResolve:visualg",
+    "onDebugDynamicConfigurations:visualg"
+  ],
+  "contributes": {
+    "colors": [
+      {
+        "id": "visualg.timerLineBackground",
+        "description": "Fundo da linha em execução quando o comando timer está ligado.",
+        "defaults": {
+          "dark": "#f5b80040",
+          "light": "#f5b80055",
+          "highContrast": "#f5b80066",
+          "highContrastLight": "#f5b80066"
+        }
+      },
+      {
+        "id": "visualg.timerLineBorder",
+        "description": "Borda à esquerda da linha em execução quando o comando timer está ligado.",
+        "defaults": {
+          "dark": "#f5b800",
+          "light": "#c99700",
+          "highContrast": "#f5b800",
+          "highContrastLight": "#c99700"
+        }
+      }
+    ],
+    "views": {
+      "debug": [
+        {
+          "id": "visualg.memory",
+          "name": "Memória (VisuAlg)",
+          "when": "visualg.memoryAvailable"
+        }
+      ]
+    },
+    "languages": [
+      {
+        "id": "visualg",
+        "aliases": [
+          "VisuAlg",
+          "Portugol (VisuAlg)"
+        ],
+        "extensions": [
+          ".alg",
+          ".ALG"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "visualg",
+        "scopeName": "source.visualg",
+        "path": "./syntaxes/visualg.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "visualg",
+        "path": "./snippets/visualg.json"
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "visualg"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "visualg",
+        "label": "VisuAlg",
+        "languages": [
+          "visualg"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Arquivo .alg a executar.",
+                "default": "${file}"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Parar na primeira linha do algoritmo.",
+                "default": false
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "visualg",
+            "request": "launch",
+            "name": "Executar VisuAlg",
+            "program": "${file}"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "VisuAlg: Executar arquivo atual",
+            "body": {
+              "type": "visualg",
+              "request": "launch",
+              "name": "Executar VisuAlg",
+              "program": "^\"\\${file}\""
+            }
+          }
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "visualg.run",
+        "title": "Executar algoritmo",
+        "category": "VisuAlg",
+        "icon": "$(play)"
+      },
+      {
+        "command": "visualg.debug",
+        "title": "Depurar algoritmo (passo a passo)",
+        "category": "VisuAlg",
+        "icon": "$(debug-alt)"
+      }
+    ],
+    "menus": {
+      "editor/title/run": [
+        {
+          "command": "visualg.run",
+          "when": "resourceLangId == visualg",
+          "group": "navigation@1"
+        },
+        {
+          "command": "visualg.debug",
+          "when": "resourceLangId == visualg",
+          "group": "navigation@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "visualg.run",
+          "when": "editorLangId == visualg"
+        },
+        {
+          "command": "visualg.debug",
+          "when": "editorLangId == visualg"
+        }
+      ]
+    },
+    "configurationDefaults": {
+      "[visualg]": {
+        "files.encoding": "windows1252",
+        "files.autoGuessEncoding": true,
+        "files.candidateGuessEncodings": [
+          "utf8",
+          "windows1252"
+        ],
+        "editor.insertSpaces": true,
+        "editor.tabSize": 3
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node esbuild.mjs && node esbuild.mjs --tests && node --test out-test/*.test.js",
+    "package": "npm run typecheck && npm run build && vsce package --no-dependencies",
+    "test:integration": "U=$(mktemp -d) && code --new-window --disable-extensions --user-data-dir=\"$U/data\" --extensions-dir=\"$U/ext\" --extensionDevelopmentPath=\"$PWD\" --extensionTestsPath=\"$PWD/test-integration/suite.js\" --wait; cat test-integration/result.txt",
+    "screenshots": "sh test-integration/screenshots.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "~1.90.0",
+    "@vscode/debugadapter": "^1.68.0",
+    "@vscode/debugprotocol": "^1.68.0",
+    "@vscode/vsce": "^3.2.0",
+    "esbuild": "^0.25.0",
+    "typescript": "~5.9.0"
+  }
+}

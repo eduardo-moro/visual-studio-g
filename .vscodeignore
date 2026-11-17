@@ -1,0 +1,16 @@
+src/**
+test/**
+out-test/**
+test-integration/**
+node_modules/**
+exemplos/**
+media/screenshots/**
+media/icon.svg
+.github/**
+.vscode/**
+**/*.map
+esbuild.mjs
+tsconfig.json
+.gitignore
+CONTRIBUTING.md
+*.vsix

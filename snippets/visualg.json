@@ -1,0 +1,93 @@
+{
+  "Algoritmo": {
+    "prefix": "algoritmo",
+    "description": "Estrutura completa de um algoritmo",
+    "body": [
+      "Algoritmo \"${1:semnome}\"",
+      "// Disciplina  : ${2:Linguagem e Lógica de Programação}",
+      "// Professor(a): ${3}",
+      "// Descrição   : ${4:Aqui você descreve o que o programa faz}",
+      "// Autor(a)    : ${5}",
+      "// Data atual  : ${CURRENT_DATE}/${CURRENT_MONTH}/${CURRENT_YEAR}",
+      "Var",
+      "   // Seção de Declarações das variáveis",
+      "   $6",
+      "",
+      "Inicio",
+      "   // Seção de Comandos, procedimento, funções, operadores, etc...",
+      "   $0",
+      "",
+      "Fimalgoritmo"
+    ]
+  },
+  "se": {
+    "prefix": "se",
+    "description": "se ... entao ... fimse",
+    "body": ["se ${1:condicao} entao", "   $0", "fimse"]
+  },
+  "se senao": {
+    "prefix": "sesenao",
+    "description": "se ... entao ... senao ... fimse",
+    "body": ["se ${1:condicao} entao", "   $2", "senao", "   $0", "fimse"]
+  },
+  "escolha": {
+    "prefix": "escolha",
+    "description": "escolha ... caso ... outrocaso ... fimescolha",
+    "body": ["escolha ${1:variavel}", "caso ${2:valor}", "   $3", "outrocaso", "   $0", "fimescolha"]
+  },
+  "para": {
+    "prefix": "para",
+    "description": "para ... de ... ate ... faca ... fimpara",
+    "body": ["para ${1:i} de ${2:1} ate ${3:10} faca", "   $0", "fimpara"]
+  },
+  "para passo": {
+    "prefix": "parapasso",
+    "description": "para ... de ... ate ... passo ... faca ... fimpara",
+    "body": ["para ${1:i} de ${2:10} ate ${3:1} passo ${4:-1} faca", "   $0", "fimpara"]
+  },
+  "enquanto": {
+    "prefix": "enquanto",
+    "description": "enquanto ... faca ... fimenquanto",
+    "body": ["enquanto ${1:condicao} faca", "   $0", "fimenquanto"]
+  },
+  "repita": {
+    "prefix": "repita",
+    "description": "repita ... ate",
+    "body": ["repita", "   $0", "ate ${1:condicao}"]
+  },
+  "procedimento": {
+    "prefix": "procedimento",
+    "description": "Declaração de procedimento",
+    "body": ["procedimento ${1:nome}(${2:parametro: inteiro})", "var", "   $3", "inicio", "   $0", "fimprocedimento"]
+  },
+  "funcao": {
+    "prefix": "funcao",
+    "description": "Declaração de função",
+    "body": ["funcao ${1:nome}(${2:parametro: inteiro}): ${3:inteiro}", "var", "   $4", "inicio", "   $0", "   retorne ${5:valor}", "fimfuncao"]
+  },
+  "vetor": {
+    "prefix": "vetor",
+    "description": "Declaração de vetor",
+    "body": "${1:v}: vetor[${2:1}..${3:10}] de ${4:inteiro}"
+  },
+  "matriz": {
+    "prefix": "matriz",
+    "description": "Declaração de matriz (vetor de duas dimensões)",
+    "body": "${1:m}: vetor[${2:1}..${3:3}, ${4:1}..${5:3}] de ${6:inteiro}"
+  },
+  "registro": {
+    "prefix": "registro",
+    "description": "Declaração de tipo registro",
+    "body": ["tipo", "   ${1:tdados} = registro", "      ${2:campo}: ${3:inteiro}", "   fimregistro"]
+  },
+  "escreval": {
+    "prefix": "escreval",
+    "description": "Escreve e pula linha",
+    "body": "escreval(${1:\"$2\"})"
+  },
+  "leia": {
+    "prefix": "leia",
+    "description": "Lê um valor do teclado",
+    "body": "leia(${1:variavel})"
+  }
+}

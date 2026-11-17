@@ -1,0 +1,31 @@
+name: Algo não funciona
+description: Um programa que dá erro, resultado diferente do VisuAlg, ou problema na extensão
+labels: [bug]
+body:
+  - type: textarea
+    id: codigo
+    attributes:
+      label: Código do algoritmo
+      description: Cole o .alg (ou o menor pedaço que mostra o problema).
+      render: visualg
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que deveria acontecer
+      description: Se possível, o que o VisuAlg mostra com esse mesmo código.
+    validations:
+      required: true
+  - type: textarea
+    id: aconteceu
+    attributes:
+      label: O que aconteceu
+      description: Mensagem de erro, saída diferente, print...
+    validations:
+      required: true
+  - type: input
+    id: versao
+    attributes:
+      label: Versões
+      description: Da extensão, do VS Code e o sistema (ex.: 0.1.0, VS Code 1.95, Windows 11)

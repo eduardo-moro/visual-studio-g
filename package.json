@@ -2,7 +2,7 @@
   "name": "visual-studio-g",
   "displayName": "Visual Studio G",
   "description": "VisuAlg (Portugol) no VS Code: execute, depure com breakpoints e passo a passo e acompanhe as variáveis, sem precisar do VisuAlg nem do Wine.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "eduardo-moro",
   "author": {
     "name": "Eduardo Moro"

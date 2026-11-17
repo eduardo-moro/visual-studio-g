@@ -104,6 +104,33 @@ async function run() {
     assert.ok(status.ok, `fluxograma de ${f}: ${status.error}`);
     assert.ok(status.nodes > 2, `fluxograma de ${f} tem ${status.nodes} blocos`);
   }
+  // Flowchart options and export (last example is still the one shown): left-to-right, right-angle lines
+  const statusNow = () => vscode.commands.executeCommand('visualg._flowchartStatus');
+  const before = (await statusNow()).seq;
+  await vscode.commands.executeCommand('visualg._flowchartPost', { type: 'options', direction: 'LR', curve: 'step' });
+  const relaid = await waitFor('fluxograma com novas opções', async () => {
+    const s = await statusNow();
+    return s && s.seq > before ? s : undefined;
+  });
+  assert.ok(relaid.ok, `fluxograma LR/step: ${relaid.error}`);
+  for (const format of ['png', 'svg']) {
+    const target = path.join(dir, `fluxograma.${format}`);
+    await vscode.commands.executeCommand('visualg._flowchartPost', { type: 'export', format, target });
+    const exp = await waitFor(`exportar ${format}`, async () => {
+      const e = await vscode.commands.executeCommand('visualg._flowchartLastExport');
+      return e && (e.error || e.path === target) ? e : undefined;
+    });
+    assert.ok(!exp.error, `exportar ${format}: ${exp.error}`);
+    const bytes = fs.readFileSync(target);
+    if (format === 'png') {
+      assert.deepStrictEqual([...bytes.subarray(0, 8)], [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], 'assinatura PNG');
+      assert.ok(bytes.readUInt32BE(16) > 200 && bytes.readUInt32BE(20) > 100, `tamanho do PNG ${bytes.readUInt32BE(16)}x${bytes.readUInt32BE(20)}`);
+    } else {
+      const text = bytes.toString('utf8');
+      assert.ok(text.startsWith('<svg') && text.includes('Início') && !text.includes('foreignObject'), 'SVG com texto puro');
+    }
+  }
+  await vscode.commands.executeCommand('visualg._flowchartPost', { type: 'options', direction: 'TD', curve: 'basis' });
   await vscode.window.showTextDocument(doc);
 
   // Run without debugging via the command (the ▶ button)

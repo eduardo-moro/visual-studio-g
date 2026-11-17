@@ -112,6 +112,8 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
     // For the integration tests: did the webview manage to draw the last diagram?
     vscode.commands.registerCommand('visualg._flowchartStatus', () => FlowchartPanel.lastStatus),
+    vscode.commands.registerCommand('visualg._flowchartPost', (message: unknown) => FlowchartPanel.post(message)),
+    vscode.commands.registerCommand('visualg._flowchartLastExport', () => FlowchartPanel.lastExport),
   );
 
   // While debugging, light up the block of the line where the program stopped.

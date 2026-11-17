@@ -1,12 +1,15 @@
 // Webview side of the "Fluxograma" tab. Receives diagrams from the extension and renders them with Mermaid.
 (function () {
   const vscode = acquireVsCodeApi();
-  const state = vscode.getState() || { routine: 0, scale: 1, autoFit: true };
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const saved = vscode.getState() || {};
   let diagrams = [];
-  let current = state.routine || 0;
-  let scale = state.scale || 1;
+  let current = saved.routine || 0;
+  let scale = saved.scale || 1;
   /** Fit to the panel width until the user zooms by hand. */
-  let autoFit = state.autoFit !== false;
+  let autoFit = saved.autoFit !== false;
+  /** Layout options, applied to the view, the exports and the copied code. */
+  const opts = { direction: saved.direction || 'TD', curve: saved.curve || 'basis' };
   let runningLine;
   let renderCount = 0;
 
@@ -18,16 +21,33 @@
 
   const body = document.body;
   const dark = body.classList.contains('vscode-dark') || body.classList.contains('vscode-high-contrast');
+  const fontFamily = getComputedStyle(body).getPropertyValue('--vscode-font-family').trim() || 'sans-serif';
   mermaid.initialize({
     startOnLoad: false,
     securityLevel: 'strict',
     theme: dark ? 'dark' : 'default',
-    flowchart: { htmlLabels: true, curve: 'basis', padding: 12 },
-    fontFamily: getComputedStyle(body).getPropertyValue('--vscode-font-family') || 'sans-serif',
+    flowchart: { htmlLabels: true, padding: 12 },
+    fontFamily,
   });
 
   function save() {
-    vscode.setState({ routine: current, scale, autoFit });
+    vscode.setState({ routine: current, scale, autoFit, direction: opts.direction, curve: opts.curve });
+  }
+
+  /**
+   * The diagram's Mermaid code with the chosen direction and line style.
+   * mode 'view' (the panel), 'export' (labels as plain SVG text: HTML labels inside foreignObject
+   * cannot be turned into a PNG) or 'copy' (no config line when the line style is the default).
+   */
+  function codeWithOptions(d, mode) {
+    const code = d.code.replace(/^flowchart \w+/, `flowchart ${opts.direction}`);
+    if (mode === 'copy' && opts.curve === 'basis') return code;
+    const config = { flowchart: { curve: opts.curve } };
+    if (mode === 'export') {
+      config.htmlLabels = false;
+      config.flowchart.htmlLabels = false;
+    }
+    return `%%{init: ${JSON.stringify(config)}}%%\n${code}`;
   }
 
   function svg() {
@@ -76,7 +96,7 @@
       // A glow drawn behind the block: Mermaid styles the shapes inline with !important,
       // so recoloring the shape itself is not reliable.
       const b = n.getBBox();
-      const glow = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const glow = document.createElementNS(SVGNS, 'rect');
       glow.setAttribute('class', 'running-glow');
       glow.setAttribute('x', String(b.x - 7));
       glow.setAttribute('y', String(b.y - 7));
@@ -98,7 +118,7 @@
     }
     const id = `fc${++renderCount}`;
     try {
-      const { svg: out } = await mermaid.render(id, d.code);
+      const { svg: out } = await mermaid.render(id, codeWithOptions(d, 'view'));
       box.innerHTML = out;
       const nodes = box.querySelectorAll('.node');
       nodes.forEach((n) => {
@@ -106,7 +126,7 @@
         const line = nid && d.nodeLines[nid];
         if (line) {
           n.addEventListener('click', () => vscode.postMessage({ type: 'reveal', line }));
-          const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+          const title = document.createElementNS(SVGNS, 'title');
           title.textContent = `Linha ${line}`;
           n.prepend(title);
         }
@@ -118,17 +138,62 @@
       const invalid = [];
       for (const other of diagrams) {
         try {
-          await mermaid.parse(other.code);
+          await mermaid.parse(codeWithOptions(other, 'view'));
         } catch (e) {
           invalid.push(`${other.title}: ${e && e.message ? e.message : e}`);
         }
       }
-      vscode.postMessage({ type: 'rendered', ok: invalid.length === 0, diagram: d.title, nodes: nodes.length, error: invalid.join('\n') || undefined });
+      vscode.postMessage({ type: 'rendered', seq: renderCount, ok: invalid.length === 0, diagram: d.title, nodes: nodes.length, error: invalid.join('\n') || undefined });
     } catch (e) {
       document.getElementById(id)?.remove();
       document.getElementById(`d${id}`)?.remove();
       box.textContent = `Não foi possível desenhar o fluxograma: ${e && e.message ? e.message : e}`;
-      vscode.postMessage({ type: 'rendered', ok: false, diagram: d.title, error: String(e && e.message ? e.message : e) });
+      vscode.postMessage({ type: 'rendered', seq: renderCount, ok: false, diagram: d.title, error: String(e && e.message ? e.message : e) });
+    }
+  }
+
+  /** Renders the current diagram for export and sends it to the extension (SVG text or PNG base64). */
+  async function exportDiagram(format, target) {
+    const d = diagrams[current];
+    if (!d) return;
+    try {
+      const { svg: text } = await mermaid.render(`exp${++renderCount}`, codeWithOptions(d, 'export'));
+      const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+      const root = doc.documentElement;
+      const [x, y, w, h] = (root.getAttribute('viewBox') || '0 0 800 600').split(/[\s,]+/).map(Number);
+      root.setAttribute('width', String(w));
+      root.setAttribute('height', String(h));
+      root.removeAttribute('style');
+      // Solid background in the editor's color, so the image looks like the panel.
+      const bgColor = getComputedStyle(body).getPropertyValue('--vscode-editor-background').trim() || (dark ? '#1e1e1e' : '#ffffff');
+      const bg = doc.createElementNS(SVGNS, 'rect');
+      bg.setAttribute('x', String(x));
+      bg.setAttribute('y', String(y));
+      bg.setAttribute('width', String(w));
+      bg.setAttribute('height', String(h));
+      bg.setAttribute('style', `fill: ${bgColor} !important; stroke: none !important;`);
+      root.insertBefore(bg, root.querySelector('g'));
+      const svgText = new XMLSerializer().serializeToString(root);
+      const name = `${d.title.replace(/["]/g, '').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '')}`;
+      if (format === 'svg') {
+        vscode.postMessage({ type: 'exportData', format, name, target, data: svgText });
+        return;
+      }
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => reject(new Error('não foi possível converter o SVG em imagem'));
+        img.src = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgText)))}`;
+      });
+      const k = 2; // 2x for a sharp image
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(w * k);
+      canvas.height = Math.ceil(h * k);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const data = canvas.toDataURL('image/png').split(',')[1];
+      vscode.postMessage({ type: 'exportData', format, name, target, data });
+    } catch (e) {
+      vscode.postMessage({ type: 'exportData', format, target, error: String(e && e.message ? e.message : e) });
     }
   }
 
@@ -144,19 +209,36 @@
     select.value = String(current);
   }
 
+  function setOptions(direction, curve) {
+    if (direction) opts.direction = direction;
+    if (curve) opts.curve = curve;
+    $('direction').value = opts.direction;
+    $('curve').value = opts.curve;
+    autoFit = true;
+    save();
+    render();
+  }
+
+  $('direction').value = opts.direction;
+  $('curve').value = opts.curve;
+  $('direction').addEventListener('change', (e) => setOptions(e.target.value));
+  $('curve').addEventListener('change', (e) => setOptions(undefined, e.target.value));
   select.addEventListener('change', () => {
     current = Number(select.value);
+    autoFit = true;
     save();
     render();
   });
   $('copy').addEventListener('click', () => {
     const d = diagrams[current];
-    if (d) vscode.postMessage({ type: 'copy', text: d.code });
+    if (d) vscode.postMessage({ type: 'copy', text: codeWithOptions(d, 'copy') });
   });
   $('copyMd').addEventListener('click', () => {
     const d = diagrams[current];
-    if (d) vscode.postMessage({ type: 'copy', text: '```mermaid\n' + d.code + '\n```\n', markdown: true });
+    if (d) vscode.postMessage({ type: 'copy', text: '```mermaid\n' + codeWithOptions(d, 'copy') + '\n```\n', markdown: true });
   });
+  $('exportPng').addEventListener('click', () => exportDiagram('png'));
+  $('exportSvg').addEventListener('click', () => exportDiagram('svg'));
   $('zoomIn').addEventListener('click', () => zoomBy(1.2));
   $('zoomOut').addEventListener('click', () => zoomBy(1 / 1.2));
   $('zoomFit').addEventListener('click', () => {
@@ -197,6 +279,10 @@
         }
       }
       applyHighlight();
+    } else if (m.type === 'options') {
+      setOptions(m.direction, m.curve);
+    } else if (m.type === 'export') {
+      exportDiagram(m.format, m.target);
     }
   });
 

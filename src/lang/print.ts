@@ -1,4 +1,4 @@
-import { Expr } from './ast';
+import { Expr, TypeRef } from './ast';
 import { formatNumber } from '../runtime/values';
 
 const PREC: Record<string, number> = {
@@ -7,6 +7,20 @@ const PREC: Record<string, number> = {
 };
 
 const SHOW: Record<string, string> = { '<>': '≠', '<=': '≤', '>=': '≥' };
+
+/** A declared type as written: inteiro, vetor[1..10] de real, taluno, registro (nome, nota). */
+export function typeRefToString(t: TypeRef): string {
+  switch (t.kind) {
+    case 'prim':
+      return t.name;
+    case 'named':
+      return t.name;
+    case 'array':
+      return `vetor[${t.dims.map((d) => `${exprToString(d.lo, false)}..${exprToString(d.hi, false)}`).join(', ')}] de ${typeRefToString(t.elem)}`;
+    case 'record':
+      return `registro (${t.fields.flatMap((f) => f.names.map((n) => n.name)).join(', ')})`;
+  }
+}
 
 /** Expression as readable text (for the flowchart). `pretty` uses ≤ ≥ ≠. */
 export function exprToString(e: Expr, pretty = true, parent = 0): string {

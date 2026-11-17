@@ -17,7 +17,8 @@ describe('flowchart', () => {
     assert.match(code, /n3\{"x #gt; 0\?"\}/);
     assert.match(code, /n4\[\\"Escreval #quot;positivo#quot;"\\\]/);
     assert.deepEqual(edges(code), [
-      'n1 --> n2',
+      'n1 --> n0',
+      'n0 --> n2',
       'n2 --> n3',
       'n3 -->|"Sim"| n4',
       'n3 -->|"Não"| n5',
@@ -32,7 +33,7 @@ describe('flowchart', () => {
     assert.match(main.code, /n2\["i ← 1"\]/);
     assert.match(main.code, /n3\{"i ≤ 3\?"\}/);
     assert.match(main.code, /n5\["i ← i \+ 1"\]/);
-    assert.deepEqual(edges(main.code), ['n1 --> n2', 'n2 --> n3', 'n3 -->|"Sim"| n4', 'n4 --> n5', 'n5 --> n3', 'n3 -->|"Não"| n6']);
+    assert.deepEqual(edges(main.code), ['n1 --> n0', 'n0 --> n2', 'n2 --> n3', 'n3 -->|"Sim"| n4', 'n4 --> n5', 'n5 --> n3', 'n3 -->|"Não"| n6']);
     // The test node is the one highlighted for the "para" line.
     assert.equal(main.lineNodes[6], 'n3');
   });
@@ -77,6 +78,40 @@ describe('flowchart', () => {
 
   it('every node maps back to a line', () => {
     const [main] = buildFlowcharts(parse(prog('i: inteiro', 'i <- 1\nenquanto i < 3 faca\ni <- i + 1\nfimenquanto')));
-    assert.deepEqual(main.nodeLines, { n1: 1, n2: 6, n3: 7, n4: 8, n5: 10 });
+    assert.deepEqual(main.nodeLines, { n1: 1, n0: 3, n2: 6, n3: 7, n4: 8, n5: 10 });
+  });
+
+  it('declarations block after Início: const, tipo and var; locals in subprograms', () => {
+    const src = [
+      'algoritmo "d"',
+      'const',
+      'MAX = 10',
+      'tipo',
+      't = registro',
+      'nome: caractere',
+      'fimregistro',
+      'var',
+      'v: vetor[1..MAX] de inteiro',
+      'a, b: real',
+      'r: t',
+      'procedimento p',
+      'var k: inteiro',
+      'inicio',
+      'k <- 1',
+      'fimprocedimento',
+      'procedimento semvars',
+      'inicio',
+      'escreva(1)',
+      'fimprocedimento',
+      'inicio',
+      'p',
+      'fimalgoritmo',
+    ].join('\n');
+    const [main, p, semvars] = buildFlowcharts(parse(src));
+    assert.match(main.code, /n0\{\{"const MAX = 10<br>tipo t = registro \(nome\)<br>v: vetor\[1\.\.MAX\] de inteiro<br>a, b: real<br>r: t"\}\}/);
+    assert.ok(edges(main.code).includes('n1 --> n0') && edges(main.code).includes('n0 --> n2'));
+    assert.equal(main.nodeLines.n0, 3); // "MAX = 10", the first declaration
+    assert.match(p.code, /s0_0\{\{"k: inteiro"\}\}/);
+    assert.doesNotMatch(semvars.code, /\{\{/);
   });
 });

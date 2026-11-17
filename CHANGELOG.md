@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1
+
+- Fluxograma: bloco com a declaração das constantes, tipos e variáveis (e das variáveis locais em procedimentos e funções).
+- Fluxograma: escolha da direção (de cima para baixo ou da esquerda para a direita) e do formato das linhas (curvas, retas ou em ângulo reto).
+- Fluxograma: exportar como imagem PNG ou SVG.
+- Novo exemplo `07-dado-aleatorio.alg`, que testa o `aleatorio` jogando um dado 6000 vezes.
+- A depuração não abre mais o Console de Depuração por cima do terminal VisuAlg.
+- Botão "Abrir no GitHub Codespaces" no README para experimentar no navegador.
+
 ## 0.1.0
 
 Primeira versão.

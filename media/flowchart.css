@@ -9,12 +9,24 @@ html, body {
   font-size: var(--vscode-font-size);
 }
 
+body {
+  display: flex;
+  flex-direction: column;
+}
+
 #toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
   border-bottom: 1px solid var(--vscode-panel-border, transparent);
+}
+
+#toolbar .group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 #toolbar .sep {
@@ -35,7 +47,7 @@ select {
   color: var(--vscode-dropdown-foreground);
   background: var(--vscode-dropdown-background);
   border-color: var(--vscode-dropdown-border, transparent);
-  max-width: 45%;
+  max-width: 260px;
 }
 
 button:hover {
@@ -64,15 +76,11 @@ button:hover {
 }
 
 #viewport {
-  position: absolute;
-  inset: 40px 0 0 0;
+  flex: 1;
+  min-height: 0;
   overflow: auto;
   padding: 16px;
   box-sizing: border-box;
-}
-
-#status.visible + #viewport {
-  top: 72px;
 }
 
 #diagram svg {

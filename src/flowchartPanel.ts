@@ -8,6 +8,8 @@ export interface RenderStatus {
   error?: string;
   diagram?: string;
   nodes?: number;
+  /** Increases with every render (tests wait for a new one). */
+  seq?: number;
 }
 
 /**
@@ -18,6 +20,15 @@ export class FlowchartPanel {
   private static instance?: FlowchartPanel;
   /** Last render result reported by the webview (used by tests). */
   static lastStatus?: RenderStatus;
+  /** Last exported file (used by tests). */
+  static lastExport?: { path?: string; bytes?: number; error?: string };
+
+  /** Send a message to the webview (tests: change options, export to a given path). */
+  static post(message: unknown): boolean {
+    if (!FlowchartPanel.instance) return false;
+    void FlowchartPanel.instance.panel.webview.postMessage(message);
+    return true;
+  }
 
   private doc?: vscode.TextDocument;
   private diagrams: FlowDiagram[] = [];
@@ -103,9 +114,42 @@ export class FlowchartPanel {
         await vscode.env.clipboard.writeText(String(m.text));
         void vscode.window.showInformationMessage(m.markdown ? 'Fluxograma copiado em Markdown (bloco ```mermaid).' : 'Código Mermaid do fluxograma copiado.');
         break;
-      case 'rendered':
-        FlowchartPanel.lastStatus = { ok: !!m.ok, error: m.error as string | undefined, diagram: m.diagram as string, nodes: m.nodes as number };
+      case 'exportData':
+        await this.saveExport(m);
         break;
+      case 'rendered':
+        FlowchartPanel.lastStatus = { ok: !!m.ok, error: m.error as string | undefined, diagram: m.diagram as string, nodes: m.nodes as number, seq: m.seq as number };
+        break;
+    }
+  }
+
+  /** Writes an exported PNG/SVG: to `target` when given (tests), otherwise where the user picks. */
+  private async saveExport(m: { [k: string]: unknown }): Promise<void> {
+    if (m.error) {
+      FlowchartPanel.lastExport = { error: String(m.error) };
+      void vscode.window.showErrorMessage(`Não foi possível exportar o fluxograma: ${m.error}`);
+      return;
+    }
+    const format = m.format === 'svg' ? 'svg' : 'png';
+    const bytes = format === 'svg' ? Buffer.from(String(m.data), 'utf8') : Buffer.from(String(m.data), 'base64');
+    let uri: vscode.Uri | undefined;
+    if (typeof m.target === 'string') uri = vscode.Uri.file(m.target);
+    else {
+      const base = this.doc ? this.doc.uri.path.split('/').pop()!.replace(/\.alg$/i, '') : 'fluxograma';
+      const folder = this.doc ? vscode.Uri.joinPath(this.doc.uri, '..') : undefined;
+      const suggested = `${base}-${m.name || 'fluxograma'}.${format}`;
+      uri = await vscode.window.showSaveDialog({
+        defaultUri: folder ? vscode.Uri.joinPath(folder, suggested) : undefined,
+        filters: format === 'svg' ? { 'Imagem SVG': ['svg'] } : { 'Imagem PNG': ['png'] },
+        saveLabel: 'Salvar fluxograma',
+      });
+      if (!uri) return;
+    }
+    await vscode.workspace.fs.writeFile(uri, bytes);
+    FlowchartPanel.lastExport = { path: uri.fsPath, bytes: bytes.length };
+    if (typeof m.target !== 'string') {
+      const open = await vscode.window.showInformationMessage(`Fluxograma salvo em ${uri.fsPath}`, 'Abrir');
+      if (open) await vscode.commands.executeCommand('vscode.open', uri);
     }
   }
 
@@ -123,13 +167,28 @@ export class FlowchartPanel {
 </head>
 <body>
 <div id="toolbar">
-  <select id="routine" title="Rotina"></select>
-  <button id="copy" title="Copiar o código Mermaid deste fluxograma">Copiar Mermaid</button>
-  <button id="copyMd" title="Copiar como bloco Markdown (para GitHub, Notion, Obsidian...)">Copiar Markdown</button>
+  <div class="group">
+    <select id="routine" title="Rotina"></select>
+    <select id="direction" title="Direção do fluxograma">
+      <option value="TD">↓ De cima para baixo</option>
+      <option value="LR">→ Da esquerda para a direita</option>
+    </select>
+    <select id="curve" title="Formato das linhas">
+      <option value="basis">Linhas curvas</option>
+      <option value="linear">Linhas retas</option>
+      <option value="step">Linhas em ângulo reto</option>
+    </select>
+  </div>
   <span class="sep"></span>
-  <button id="zoomOut" title="Diminuir">−</button>
-  <button id="zoomFit" title="Ajustar à janela">Ajustar</button>
-  <button id="zoomIn" title="Aumentar">+</button>
+  <div class="group">
+    <button id="copy" title="Copiar o código Mermaid deste fluxograma">Copiar Mermaid</button>
+    <button id="copyMd" title="Copiar como bloco Markdown (para GitHub, Notion, Obsidian...)">Copiar Markdown</button>
+    <button id="exportPng" title="Salvar como imagem PNG">PNG</button>
+    <button id="exportSvg" title="Salvar como imagem SVG (vetorial)">SVG</button>
+    <button id="zoomOut" title="Diminuir">−</button>
+    <button id="zoomFit" title="Ajustar à janela">Ajustar</button>
+    <button id="zoomIn" title="Aumentar">+</button>
+  </div>
 </div>
 <div id="status"></div>
 <div id="viewport"><div id="diagram"></div></div>

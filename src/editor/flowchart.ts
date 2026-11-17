@@ -1,5 +1,5 @@
-import { Expr, Program, Stmt, SubDecl } from '../lang/ast';
-import { exprToString } from '../lang/print';
+import { ConstDecl, Expr, Program, Stmt, SubDecl, TypeDecl, VarDecl } from '../lang/ast';
+import { exprToString, typeRefToString } from '../lang/print';
 
 /** One flowchart per routine: the main algorithm and each procedimento/funcao. */
 export interface FlowDiagram {
@@ -15,7 +15,7 @@ export interface FlowDiagram {
   lineNodes: Record<number, string>;
 }
 
-type Shape = 'terminal' | 'process' | 'decision' | 'input' | 'output' | 'call';
+type Shape = 'terminal' | 'process' | 'decision' | 'input' | 'output' | 'call' | 'decl';
 type Out = { from: string; label?: string }[];
 
 interface Ctx {
@@ -32,6 +32,7 @@ const SHAPES: Record<Shape, [string, string]> = {
   input: ['[/"', '"/]'],
   output: ['[\\"', '"\\]'],
   call: ['[["', '"]]'],
+  decl: ['{{"', '"}}'],
 };
 
 const CLASSES: Record<Shape, string> = {
@@ -41,6 +42,7 @@ const CLASSES: Record<Shape, string> = {
   input: 'fill:#8e24aa22,stroke:#ab47bc',
   output: 'fill:#00897b22,stroke:#26a69a',
   call: 'fill:#e6510022,stroke:#fb8c00',
+  decl: 'fill:#78909c22,stroke:#90a4ae',
 };
 
 /** Mermaid label text: entities for characters that would break the syntax. */
@@ -58,7 +60,7 @@ function negativeLiteral(e: Expr | undefined): number | undefined {
 
 class Builder {
   private readonly lines: string[] = [];
-  private readonly byShape: Record<Shape, string[]> = { terminal: [], process: [], decision: [], input: [], output: [], call: [] };
+  private readonly byShape: Record<Shape, string[]> = { terminal: [], process: [], decision: [], input: [], output: [], call: [], decl: [] };
   private n = 0;
   readonly nodeLines: Record<string, number> = {};
   readonly lineNodes: Record<number, string> = {};
@@ -73,6 +75,16 @@ class Builder {
     this.byShape[shape].push(id);
     this.nodeLines[id] = line;
     if (primary && !(line in this.lineNodes)) this.lineNodes[line] = id;
+    return id;
+  }
+
+  /** The declarations block (one line per declaration). Its own id, so it does not shift the numbering. */
+  declarations(lines: string[], line: number): string {
+    const id = `${this.prefix}0`;
+    const [open, close] = SHAPES.decl;
+    this.lines.push(`  ${id}${open}${lines.map(esc).join('<br>')}${close}`);
+    this.byShape.decl.push(id);
+    this.nodeLines[id] = line;
     return id;
   }
 
@@ -204,10 +216,16 @@ class Builder {
     }
   }
 
-  routine(startText: string, startLine: number, stmts: Stmt[], endLine: number): string {
+  routine(startText: string, startLine: number, stmts: Stmt[], endLine: number, decls?: { lines: string[]; line: number }): string {
     const ctx: Ctx = { breaks: [], returns: [] };
     const start = this.node('terminal', startText, startLine);
-    const out = this.block(stmts, [{ from: start }], ctx);
+    let first: Out = [{ from: start }];
+    if (decls?.lines.length) {
+      const d = this.declarations(decls.lines, decls.line);
+      this.link(first, d);
+      first = [{ from: d }];
+    }
+    const out = this.block(stmts, first, ctx);
     const end = this.node('terminal', 'Fim', endLine);
     this.link(out, end);
     this.link(ctx.returns, end);
@@ -219,6 +237,17 @@ class Builder {
   }
 }
 
+/** Text of the declarations block: constants, types and variables, in the order VisuAlg lists them. */
+function declarationLines(consts: ConstDecl[], types: TypeDecl[], vars: VarDecl[]): { lines: string[]; line: number } | undefined {
+  const lines = [
+    ...consts.map((c) => `const ${c.name} = ${exprToString(c.value)}`),
+    ...types.map((t) => `tipo ${t.name} = ${typeRefToString(t.type)}`),
+    ...vars.map((v) => `${v.names.map((n) => n.name).join(', ')}: ${typeRefToString(v.type)}`),
+  ];
+  const spans = [...consts, ...types, ...vars].map((d) => d.span.line);
+  return lines.length ? { lines, line: Math.min(...spans) } : undefined;
+}
+
 function subSignature(s: SubDecl): string {
   return `${s.name}(${s.params.map((p) => (p.byRef ? `var ${p.name}` : p.name)).join(', ')})`;
 }
@@ -228,7 +257,7 @@ export function buildFlowcharts(p: Program): FlowDiagram[] {
   const main = new Builder('n');
   out.push({
     title: `algoritmo "${p.name}"`,
-    code: main.routine('Início', p.span.line, [...p.prelude, ...p.body], p.endSpan.line),
+    code: main.routine('Início', p.span.line, [...p.prelude, ...p.body], p.endSpan.line, declarationLines(p.consts, p.types, p.vars)),
     startLine: p.span.line,
     endLine: p.endSpan.line,
     nodeLines: main.nodeLines,
@@ -238,7 +267,7 @@ export function buildFlowcharts(p: Program): FlowDiagram[] {
     const b = new Builder(`s${k}_`);
     out.push({
       title: `${s.kind} ${s.name}`,
-      code: b.routine(`Início: ${subSignature(s)}`, s.span.line, s.body, s.endSpan.line),
+      code: b.routine(`Início: ${subSignature(s)}`, s.span.line, s.body, s.endSpan.line, declarationLines(s.consts, [], s.vars)),
       startLine: s.span.line,
       endLine: s.endSpan.line,
       nodeLines: b.nodeLines,

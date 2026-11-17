@@ -19,7 +19,7 @@
 
 O VisuAlg é ótimo para aprender lógica de programação, mas só roda no Windows e o editor dele é bem limitado. A **Visual Studio G** traz a linguagem do VisuAlg para o VS Code, com um interpretador próprio: você escreve o mesmo código das aulas e ganha um depurador de verdade, erros enquanto digita e tudo o que o VS Code oferece.
 
-![Depurando um algoritmo: breakpoint, variáveis e terminal](media/screenshots/depurar.png)
+![Depurando um algoritmo com o fluxograma acompanhando cada passo](media/demo.gif)
 
 ## Recursos
 
@@ -62,7 +62,7 @@ O VisuAlg é ótimo para aprender lógica de programação, mas só roda no Wind
 | Formatar | `Shift+Alt+F` |
 | Fluxograma | botão de fluxograma no canto do editor, ou `Ctrl+Shift+P` → "Mostrar fluxograma" |
 
-A pasta [`exemplos`](exemplos) tem programas prontos para testar cada recurso.
+A pasta [`exemplos`](exemplos) tem programas prontos para testar cada recurso. O da animação acima é o [`07-dado-aleatorio.alg`](exemplos/07-dado-aleatorio.alg): joga um dado 6000 vezes com `aleatorio` + `leia` e confere se cada face sai perto de 1/6 das vezes.
 
 ## Linguagem suportada
 

@@ -25,7 +25,7 @@ cat > "$tmp/data/User/settings.json" <<'EOF'
 EOF
 rm -f test-integration/result.txt
 code --new-window --user-data-dir="$tmp/data" --extensions-dir="$tmp/ext" \
-  --extensionDevelopmentPath="$PWD" --extensionTestsPath="$PWD/test-integration/screenshots.js" \
+  --extensionDevelopmentPath="$PWD" --extensionTestsPath="$PWD/test-integration/${SCRIPT:-screenshots}.js" \
   "$PWD/exemplos" --wait
 cat test-integration/result.txt
 rm -rf "$tmp"

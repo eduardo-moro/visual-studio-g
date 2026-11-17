@@ -14,3 +14,4 @@ tsconfig.json
 .gitignore
 CONTRIBUTING.md
 *.vsix
+media/demo.gif

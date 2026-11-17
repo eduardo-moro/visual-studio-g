@@ -50,3 +50,13 @@ code --install-extension visual-studio-g-*.vsix
 4. Abra o pull request explicando o que mudou e por quê.
 
 Mensagens de erro e textos para o usuário ficam em português; código e comentários podem ficar em inglês.
+
+## Imagens do README
+
+As capturas de tela e a animação são geradas automaticamente numa janela limpa do VS Code (precisa de Hyprland, `grim` e `ffmpeg`):
+
+```sh
+npm run screenshots                                     # media/screenshots/*.png
+SCRIPT=recording sh test-integration/screenshots.sh     # grava a demonstração
+node test-integration/make-gif.mjs                      # media/demo.gif com legendas
+```

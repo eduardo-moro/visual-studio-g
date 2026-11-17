@@ -3,3 +3,4 @@ dist/
 out-test/
 *.vsix
 test-integration/result.txt
+test-integration/frames/

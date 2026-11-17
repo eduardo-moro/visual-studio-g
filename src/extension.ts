@@ -75,6 +75,8 @@ export function activate(context: vscode.ExtensionContext): void {
           void vscode.window.showInformationMessage('Abra um arquivo .alg para executar.');
           return undefined;
         }
+        // The program talks through the VisuAlg terminal; the Debug Console would just cover it.
+        config.internalConsoleOptions ??= 'neverOpen';
         return config;
       },
     }),
@@ -93,6 +95,7 @@ export function activate(context: vscode.ExtensionContext): void {
       request: 'launch',
       program: target.fsPath,
       stopOnEntry: debug,
+      internalConsoleOptions: 'neverOpen',
     }, { noDebug: !debug });
   };
 

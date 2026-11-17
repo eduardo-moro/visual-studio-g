@@ -1,0 +1,91 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  color: var(--vscode-foreground);
+  background: var(--vscode-editor-background);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+}
+
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--vscode-panel-border, transparent);
+}
+
+#toolbar .sep {
+  flex: 1;
+}
+
+select, button {
+  font: inherit;
+  color: var(--vscode-button-secondaryForeground);
+  background: var(--vscode-button-secondaryBackground);
+  border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: 3px;
+  padding: 3px 9px;
+  cursor: pointer;
+}
+
+select {
+  color: var(--vscode-dropdown-foreground);
+  background: var(--vscode-dropdown-background);
+  border-color: var(--vscode-dropdown-border, transparent);
+  max-width: 45%;
+}
+
+button:hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+#copy {
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+}
+
+#copy:hover {
+  background: var(--vscode-button-hoverBackground);
+}
+
+#status {
+  display: none;
+  padding: 6px 10px;
+  color: var(--vscode-editorWarning-foreground);
+  background: var(--vscode-inputValidation-warningBackground, transparent);
+  border-bottom: 1px solid var(--vscode-inputValidation-warningBorder, transparent);
+}
+
+#status.visible {
+  display: block;
+}
+
+#viewport {
+  position: absolute;
+  inset: 40px 0 0 0;
+  overflow: auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+#status.visible + #viewport {
+  top: 72px;
+}
+
+#diagram svg {
+  display: block;
+  margin: 0 auto;
+}
+
+#diagram .node {
+  cursor: pointer;
+}
+
+#diagram .node:hover > * {
+  filter: brightness(1.25);
+}
+
+/* .running-glow (behind the running block) is styled inline in flowchart.js. */

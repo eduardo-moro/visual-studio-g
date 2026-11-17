@@ -98,6 +98,32 @@ async function run() {
   await sleep(2000);
   shot('erro');
   await vscode.debug.stopDebugging();
+  await waitFor('fim', () => events.find((e) => e.event === 'terminated'));
+
+  // 5. Flowchart tab next to the code
+  await vscode.commands.executeCommand('workbench.action.closeSidebar');
+  await vscode.commands.executeCommand('workbench.action.closePanel');
+  await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+  doc = await open('02-media-notas.alg');
+  await vscode.commands.executeCommand('visualg.flowchart');
+  await waitFor('fluxograma', async () => (await vscode.commands.executeCommand('visualg._flowchartStatus'))?.ok);
+  await sleep(2500);
+  shot('fluxograma');
+
+  // 6. Debugging with the flowchart: stopped inside the recursive function
+  events.length = 0;
+  await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+  doc = await open('03-funcoes.alg');
+  await vscode.commands.executeCommand('visualg.flowchart');
+  await sleep(1500);
+  // Line 14 (0-based 13): "retorne n * fatorial(n - 1)"
+  vscode.debug.addBreakpoints([new vscode.SourceBreakpoint(new vscode.Location(doc.uri, new vscode.Position(13, 0)))]);
+  await vscode.debug.startDebugging(undefined, { type: 'visualg', name: 'Depurar', request: 'launch', program: doc.uri.fsPath });
+  await waitFor('breakpoint', () => events.find((e) => e.event === 'stopped'));
+  await vscode.commands.executeCommand('workbench.action.closePanel');
+  await sleep(3000);
+  shot('fluxograma-depurar');
+  await vscode.debug.stopDebugging();
 }
 
 const resultFile = path.join(__dirname, 'result.txt');

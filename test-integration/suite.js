@@ -90,6 +90,22 @@ async function run() {
   await waitFor('fim da sessão', () => events.find((e) => e.event === 'terminated'));
   vscode.debug.removeBreakpoints(vscode.debug.breakpoints);
 
+  // Flowchart tab: every example program must render (all routines must parse).
+  const examples = path.resolve(__dirname, '..', 'exemplos');
+  for (const f of fs.readdirSync(examples).filter((n) => n.endsWith('.alg'))) {
+    const ex = await vscode.workspace.openTextDocument(path.join(examples, f));
+    await vscode.window.showTextDocument(ex);
+    await vscode.commands.executeCommand('visualg.flowchart');
+    const title = `algoritmo "${(/algoritmo\s+"([^"]*)"/i.exec(ex.getText()) || [])[1]}"`;
+    const status = await waitFor(`fluxograma de ${f}`, async () => {
+      const s = await vscode.commands.executeCommand('visualg._flowchartStatus');
+      return s && s.diagram === title ? s : undefined;
+    });
+    assert.ok(status.ok, `fluxograma de ${f}: ${status.error}`);
+    assert.ok(status.nodes > 2, `fluxograma de ${f} tem ${status.nodes} blocos`);
+  }
+  await vscode.window.showTextDocument(doc);
+
   // Run without debugging via the command (the ▶ button)
   events.length = 0;
   await vscode.commands.executeCommand('visualg.run');

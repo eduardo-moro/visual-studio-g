@@ -26,6 +26,7 @@ O VisuAlg é ótimo para aprender lógica de programação, mas só roda no Wind
 - **Executar** com `Ctrl+F5` ou com o botão **▶** no canto do editor. O programa roda no terminal **VisuAlg**, e é ali que você digita o que o `leia` pede.
 - **Depurar** com `F5`: breakpoints, passo a passo (`F10`, `F11`, `Shift+F11`), pilha de chamadas e painel de **Variáveis** com vetores, matrizes e registros. Dá para mudar o valor de uma variável com duplo clique.
 - **Passo a passo desde a primeira linha** (o F8 do VisuAlg) com o botão do inseto, ao lado do ▶.
+- **Fluxograma** do algoritmo numa aba ao lado do código (botão no canto do editor): início e fim, decisões com Sim/Não, laços, leituras e escritas, um fluxograma para cada procedimento e função. Ele se atualiza enquanto você digita, clicar num bloco leva à linha do código e, **durante a depuração, o bloco que está executando acende**. Dá para copiar o código [Mermaid](https://mermaid.js.org) (ou um bloco Markdown pronto para GitHub, Notion, Obsidian...).
 - **Painel Memória (VisuAlg)**, como a área de variáveis do VisuAlg: mostra os valores ao vivo, mesmo sem depurar, e guarda os valores finais quando o programa termina.
 - **Erros de execução** (índice fora do vetor, divisão por zero...) param o depurador na linha certa, com as variáveis ainda visíveis.
 - **Erros enquanto você digita**, em português: variável não declarada, `fimse` faltando, tipo errado...
@@ -33,9 +34,15 @@ O VisuAlg é ótimo para aprender lógica de programação, mas só roda no Wind
 - Destaque de sintaxe, trechos prontos (`algoritmo`, `se`, `para`, `procedimento`...), autocompletar, documentação ao passar o mouse, estrutura do arquivo e **formatação automática** (`Shift+Alt+F`).
 - Arquivos `.alg` salvos pelo VisuAlg no Windows abrem com os acentos certos.
 
-| Memória ao vivo | Parando num erro | `timer` |
-|---|---|---|
-| ![Painel Memória](media/screenshots/memoria.png) | ![Erro de execução](media/screenshots/erro.png) | ![Timer](media/screenshots/timer.png) |
+![Fluxograma acompanhando a depuração dentro de uma função recursiva](media/screenshots/fluxograma-depurar.png)
+
+| Fluxograma | Memória ao vivo |
+|---|---|
+| ![Fluxograma](media/screenshots/fluxograma.png) | ![Painel Memória](media/screenshots/memoria.png) |
+
+| Parando num erro | `timer` |
+|---|---|
+| ![Erro de execução](media/screenshots/erro.png) | ![Timer](media/screenshots/timer.png) |
 
 ## Como usar
 
@@ -53,6 +60,7 @@ O VisuAlg é ótimo para aprender lógica de programação, mas só roda no Wind
 | Continuar / parar | `F5` / `Shift+F5` |
 | Interromper o programa | `Ctrl+C` no terminal VisuAlg |
 | Formatar | `Shift+Alt+F` |
+| Fluxograma | botão de fluxograma no canto do editor, ou `Ctrl+Shift+P` → "Mostrar fluxograma" |
 
 A pasta [`exemplos`](exemplos) tem programas prontos para testar cada recurso.
 
@@ -88,7 +96,7 @@ Contribuições são muito bem-vindas, principalmente de quem está aprendendo! 
 
 ## English
 
-**Visual Studio G** runs and debugs VisuAlg programs (the Portuguese pseudocode used to teach programming in Brazilian schools and universities) inside VS Code, on any OS. It ships its own interpreter, a full debugger (breakpoints, stepping, variables, call stack), live diagnostics, a formatter and a live memory view. MIT licensed.
+**Visual Studio G** runs and debugs VisuAlg programs (the Portuguese pseudocode used to teach programming in Brazilian schools and universities) inside VS Code, on any OS. It ships its own interpreter, a full debugger (breakpoints, stepping, variables, call stack), a live flowchart view (Mermaid) that highlights the running block while debugging, live diagnostics, a formatter and a live memory view. MIT licensed.
 
 ---
 

@@ -172,9 +172,22 @@
         "title": "Depurar algoritmo (passo a passo)",
         "category": "VisuAlg",
         "icon": "$(debug-alt)"
+      },
+      {
+        "command": "visualg.flowchart",
+        "title": "Mostrar fluxograma",
+        "category": "VisuAlg",
+        "icon": "$(type-hierarchy-sub)"
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "command": "visualg.flowchart",
+          "when": "resourceLangId == visualg",
+          "group": "navigation@1"
+        }
+      ],
       "editor/title/run": [
         {
           "command": "visualg.run",
@@ -194,6 +207,10 @@
         },
         {
           "command": "visualg.debug",
+          "when": "editorLangId == visualg"
+        },
+        {
+          "command": "visualg.flowchart",
           "when": "editorLangId == visualg"
         }
       ]

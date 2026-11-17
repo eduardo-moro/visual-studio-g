@@ -10,3 +10,4 @@ Primeira versão.
 - Erros enquanto digita, autocompletar, hover, estrutura do arquivo, formatação, trechos prontos e destaque de sintaxe.
 - Arquivos `.alg` em Windows-1252 (salvos pelo VisuAlg) abrem com os acentos corretos.
 - Interpretador de linha de comando (`dist/cli.js`).
+- Fluxograma (Mermaid) de cada rotina, atualizado ao digitar, com o bloco em execução destacado durante a depuração e cópia do código Mermaid ou Markdown.
